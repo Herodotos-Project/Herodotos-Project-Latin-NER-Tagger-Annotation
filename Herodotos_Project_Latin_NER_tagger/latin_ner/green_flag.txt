@@ -1,0 +1,1 @@
+neural model training was successful
