@@ -11,7 +11,8 @@ Further information, including our splits for training and testing, can be found
 Also included is the Herodotos Project Latin NER Tagger trained on the entire set of Latin data included in this repository using the BiLSTM-CRF architecture of Lample et al. (2016), "Neural Architectures for Named Entity Recognition". For a quick demo, you can test it with the included sample data like so:
 
 ```
-cat Herodotos_Project_Latin_NER_tagger/sample.tok.in | python Herodotos_Project_Latin_NER_tagger/tagger.py > sample.out.tags
+cd Herodotos_Project_Latin_NER_tagger
+cat sample.tok.in | python tagger.py > sample.out.tags
 ```
 
 To work, you must use Python 3 with the theano library installed. Furthermore, the input should ideally be tokenized (we separated clictics and punctuation during training) with one sentence per line. The output will return all identified named entities for each line as triples: (character offset within the corresponding line where the named entity starts, the full span of the named entity, the label of the named entity).
