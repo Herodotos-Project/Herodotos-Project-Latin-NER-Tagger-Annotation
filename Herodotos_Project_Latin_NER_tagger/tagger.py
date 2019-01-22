@@ -1061,7 +1061,7 @@ assert opts.delimiter
 # Load existing model
 sys.stderr.write("Loading model...")
 ### HARD CODED MODEL LOCATION FOR THE PACKAGED VERSION
-opts.model_loc = 'pelagios_latin_ner'
+opts.model_loc = 'latin_ner'
 workingDir = os.path.dirname(os.path.realpath(sys.argv[0]))
 opts.model = os.path.join(workingDir, opts.model_loc)
 ###
