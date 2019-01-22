@@ -8,7 +8,7 @@ The data files in the Annotation directory were annotated for named entities by 
 
 Names of peoples are annotated as GRP; names of persons are annotated as PRS; and names of geographical places are annotated as GEO in the [BIO](https://en.wikipedia.org/wiki/Inside–outside–beginning_(tagging)) scheme.
 
-Further information, including our splits for training and testing, can be found in the relevant paper in this directory, Erdmann et al. (2016), "Challenges and Solutions for Latin Named Entity Recognition". This is the paper that should be cited if you wish to use the data. An updated paper is currently under review.. more to follow.
+Further information, including our splits for training and testing, can be found in the relevant paper, [Erdmann et al. (2016), "Challenges and Solutions for Latin Named Entity Recognition"](http://www.aclweb.org/anthology/W16-4012). An updated paper is currently under review.. more to follow.
 
 Also included is the Herodotos Project Latin NER Tagger trained on the entire set of Latin data included in this repository using the BiLSTM-CRF architecture of Lample et al. (2016), "Neural Architectures for Named Entity Recognition". For a quick demo, you can test it with the included sample data like so:
 
