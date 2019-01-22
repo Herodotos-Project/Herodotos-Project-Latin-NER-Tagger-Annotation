@@ -1090,326 +1090,366 @@ sys.stderr.write('Tagging...')
 
 if opts.inputFormat == 'tok':
 
-	# f_output = open(opts.output, 'w')
-	words = []
-	# INPUT = (open(opts.input).read().splitlines())
-	### CONVERT STD INPUT TO LIST OF WORDS
-	# STANDARD INPUT SHOULD BE ONE TOKENIZED SENTENCE PER LINE
-		# ADD FUNCTIONALITY TO TOKENIZE ON THE FLY!!!
-	# NEED TO CONVERT THAT TO ONE TOKEN PER LINE WITH BLANK LINE FOR SPACE
-	temp_f = '{}/temp.{}.txt'.format('/'.join(opts.model.split('/')), str(random.randint(0,1000000000000000000000)))
-	f_temp = open(temp_f, 'w')
-	for line in sys.stdin:
-		for word in line.split():
-			f_temp.write('{} 0\n'.format(word))
-		f_temp.write('\n')
-	f_temp.close()
-	### PROCESS INPUT
+    # f_output = open(opts.output, 'w')
+    words = []
+    # INPUT = (open(opts.input).read().splitlines())
+    ### CONVERT STD INPUT TO LIST OF WORDS
+    # STANDARD INPUT SHOULD BE ONE TOKENIZED SENTENCE PER LINE
+        # ADD FUNCTIONALITY TO TOKENIZE ON THE FLY!!!
+    # NEED TO CONVERT THAT TO ONE TOKEN PER LINE WITH BLANK LINE FOR SPACE
+    temp_f = '{}/temp.{}.txt'.format('/'.join(opts.model.split('/')), str(random.randint(0,1000000000000000000000)))
+    f_temp = open(temp_f, 'w')
+    for line in sys.stdin:
+        for word in line.split():
+            f_temp.write('{} 0\n'.format(word))
+        f_temp.write('\n')
+    f_temp.close()
+    ### PROCESS INPUT
 
-	INPUT = (open(temp_f).read().splitlines())
-	endLine = len(INPUT)
-	ind = 0
-	for line in INPUT:
-	    ind += 1
-	    count = 0
+    INPUT = (open(temp_f).read().splitlines())
+    endLine = len(INPUT)
+    ind = 0
+    for line in INPUT:
+        ind += 1
+        count = 0
 
-	    # Lowercase sentence
-	    if parameters['lower']:
-	        line = line.lower()
-	    # Replace all digits with zeros
-	    if parameters['zeros']:
-	        line = zero_digits(line)
+        # Lowercase sentence
+        if parameters['lower']:
+            line = line.lower()
+        # Replace all digits with zeros
+        if parameters['zeros']:
+            line = zero_digits(line)
 
-	    line = line.split()
-	    if len(line) > 0:
-	        words.append(line[0])
+        line = line.split()
+        if len(line) > 0:
+            words.append(line[0])
 
-	    if len(line) == 0 or ind == endLine:
+        if len(line) == 0 or ind == endLine:
 
-	        if len(words) > 0:
-	            # Prepare input
-	            sentence = prepare_sentence(words, word_to_id, char_to_id,
-	                                        lower=parameters['lower'])
-	            input = create_input(sentence, parameters, False)
-	            # Decoding
-	            if parameters['crf']:
-	                y_preds = np.array(f_eval(*input))[1:-1]
-	            else:
-	                y_preds = f_eval(*input).argmax(axis=1)
-	            y_preds = [model.id_to_tag[y_pred] for y_pred in y_preds]
-	            # Output tags in the IOB2 format
-	            if parameters['tag_scheme'] == 'iobes':
-	                y_preds = iobes_iob(y_preds)
-	            # Write tags
-	            assert len(y_preds) == len(words)
-	            
-	            if opts.outputFormat == 'json':
-	                sys.stdout.write(json.dumps({ "text": ' '.join(words), "ranges": iob_ranges(y_preds) }))
+            if len(words) > 0:
+                # Prepare input
+                sentence = prepare_sentence(words, word_to_id, char_to_id,
+                                            lower=parameters['lower'])
+                input = create_input(sentence, parameters, False)
+                # Decoding
+                if parameters['crf']:
+                    try:
+                        y_preds = np.array(f_eval(*input))[1:-1]
+                    except:
+                        y_preds = np.array([0] * len(words))
+                else:
+                    try:
+                        y_preds = f_eval(*input).argmax(axis=1)
+                    except:
+                        y_preds = np.array([0] * len(words))
+                y_preds = [model.id_to_tag[y_pred] for y_pred in y_preds]
+                # Output tags in the IOB2 format
+                if parameters['tag_scheme'] == 'iobes':
+                    y_preds = iobes_iob(y_preds)
+                # Write tags
+                assert len(y_preds) == len(words)
+                
+                if opts.outputFormat == 'json':
+                    sys.stdout.write(json.dumps({ "text": ' '.join(words), "ranges": iob_ranges(y_preds) }))
 
-	            elif opts.outputFormat == 'pelagios':
+                elif opts.outputFormat == 'pelagios':
 
-	                offset = 0
-	                tuples = []
-	                for n in range(len(words)):
-	                    w = words[n]
-	                    y = y_preds[n]
-	                    if y == 'O':
-	                        y = '0'
-	                    else:
-	                        y = y.split('-')
-	                        y = '{}-{}'.format(y[1],y[0])
-	                    # try:
-	                        # sys.stdout.write('{}\t{}\n'.format(y, w))
-	                    # except:
-	                        # sys.stdout.write('{}\tUNICODE-ERROR\n'.format(y))
-
-
-	                    if y != '0':
-	                        if '-B' in y:
-	                            tuples.append([offset, w, y.split('-')[0]])
-	                        else:
-	                            tuples[-1][1] += ' {}'.format(w)
-
-	                    # sys.stdout.write('{} '.format())
-	                    offset += len(w) + 1
-
-	                sys.stdout.write('{}\n'.format(', '.join(str(tup) for tup in tuples)).replace("'",'').replace('[','(').replace(']',')'))
-
-	            elif opts.outputFormat == 'crf':
-
-	                for n in range(len(words)):
-	                    w = words[n]
-	                    y = y_preds[n]
-	                    if y == 'O':
-	                        y = '0'
-	                    else:
-	                        y = y.split('-')
-	                        y = '{}-{}'.format(y[1],y[0])
-	                    try:
-	                        sys.stdout.write('{}\t{}\n'.format(y, w))
-	                    except:
-	                        sys.stdout.write('{}\tUNICODE-ERROR\n'.format(y))
-	                sys.stdout.write('\n')
-
-	            elif opts.outputFormat == 'list':
+                    offset = 0
+                    tuples = []
+                    for n in range(len(words)):
+                        w = words[n]
+                        y = y_preds[n]
+                        if y == 'O':
+                            y = '0'
+                        else:
+                            y = y.split('-')
+                            y = '{}-{}'.format(y[1],y[0])
+                        # try:
+                            # sys.stdout.write('{}\t{}\n'.format(y, w))
+                        # except:
+                            # sys.stdout.write('{}\tUNICODE-ERROR\n'.format(y))
 
 
-	                offset = 0
-	                tuples = []
-	                for n in range(len(words)):
-	                    w = words[n]
-	                    y = y_preds[n]
-	                    if y == 'O':
-	                        y = '0'
-	                    else:
-	                        y = y.split('-')
-	                        y = '{}-{}'.format(y[1],y[0])
-	                    # try:
-	                        # sys.stdout.write('{}\t{}\n'.format(y, w))
-	                    # except:
-	                        # sys.stdout.write('{}\tUNICODE-ERROR\n'.format(y))
+                        if y != '0':
+                            if '-B' in y:
+                                tuples.append([offset, w, y.split('-')[0]])
+                            else:
+                                tuples[-1][1] += ' {}'.format(w)
+
+                        # sys.stdout.write('{} '.format())
+                        offset += len(w) + 1
+
+                    sys.stdout.write('{}\n'.format(', '.join(str(tup) for tup in tuples)).replace("'",'').replace('[','(').replace(']',')'))
+
+                elif opts.outputFormat == 'crf':
+
+                    for n in range(len(words)):
+                        w = words[n]
+                        y = y_preds[n]
+                        if y == 'O':
+                            y = '0'
+                        else:
+                            y = y.split('-')
+                            y = '{}-{}'.format(y[1],y[0])
+                        try:
+                            sys.stdout.write('{}\t{}\n'.format(y, w))
+                        except:
+                            sys.stdout.write('{}\tUNICODE-ERROR\n'.format(y))
+                    sys.stdout.write('\n')
 
 
-	                    if y != '0':
-	                        if '-B' in y:
-	                            tuples.append([offset, w, y.split('-')[0]])
-	                        else:
-	                            tuples[-1][1] += ' {}'.format(w)
+                elif opts.outputFormat == 'conll':
 
-	                    # sys.stdout.write('{} '.format())
-	                    offset += len(w) + 1
+                    for n in range(len(words)):
+                        w = words[n]
+                        y = y_preds[n]
+                        try:
+                            # sys.stdout.write('{}\t{}\n'.format(y, w))
+                            sys.stdout.write('{}\t{}\n'.format(w, y))
+                        except:
+                            sys.stdout.write('UNICODE-ERROR\t{}\n'.format(y))
+                    sys.stdout.write('\n')
 
-	                for tup in tuples:
-	                	ne = tup[1]
-	                	label = tup[2]
 
-	                	if label not in uniqueNEs:
-	                		uniqueNEs[label] = {}
-	                	if ne not in uniqueNEs[label]:
-	                		uniqueNEs[label][ne] = 0
-	                	uniqueNEs[label][ne] += 1
+                elif opts.outputFormat == 'list':
 
-	            else:
-	            	print('UNSUPPORTED OUTPUT FORMAT {}'.format(opts.outputFormat))
 
-	            words = []
+                    offset = 0
+                    tuples = []
+                    for n in range(len(words)):
+                        w = words[n]
+                        y = y_preds[n]
+                        if y == 'O':
+                            y = '0'
+                        else:
+                            y = y.split('-')
+                            y = '{}-{}'.format(y[1],y[0])
+                        # try:
+                            # sys.stdout.write('{}\t{}\n'.format(y, w))
+                        # except:
+                            # sys.stdout.write('{}\tUNICODE-ERROR\n'.format(y))
 
-	if opts.outputFormat == 'list':
 
-		for label in uniqueNEs:
-			print(label)
+                        if y != '0':
+                            if '-B' in y:
+                                tuples.append([offset, w, y.split('-')[0]])
+                            else:
+                                tuples[-1][1] += ' {}'.format(w)
 
-			orderedNEs = []
-			for ne in uniqueNEs[label]:
-				orderedNEs.append([uniqueNEs[label][ne], ne])
-			orderedNEs.sort(reverse=True)
-			for tup in orderedNEs:
-				ne = tup[1]
-				count = str(tup[0])
-				print('\t{}\t{}'.format(ne, count))
-			print()
+                        # sys.stdout.write('{} '.format())
+                        offset += len(w) + 1
 
-	os.system('rm '+temp_f)
-	# sys.stderr.close()
+                    for tup in tuples:
+                        ne = tup[1]
+                        label = tup[2]
+
+                        if label not in uniqueNEs:
+                            uniqueNEs[label] = {}
+                        if ne not in uniqueNEs[label]:
+                            uniqueNEs[label][ne] = 0
+                        uniqueNEs[label][ne] += 1
+
+                else:
+                    print('UNSUPPORTED OUTPUT FORMAT {}'.format(opts.outputFormat))
+
+                words = []
+
+    if opts.outputFormat == 'list':
+
+        for label in uniqueNEs:
+            print(label)
+
+            orderedNEs = []
+            for ne in uniqueNEs[label]:
+                orderedNEs.append([uniqueNEs[label][ne], ne])
+            orderedNEs.sort(reverse=True)
+            for tup in orderedNEs:
+                ne = tup[1]
+                count = str(tup[0])
+                print('\t{}\t{}'.format(ne, count))
+            print()
+
+    os.system('rm '+temp_f)
+    # sys.stderr.close()
 
 elif opts.inputFormat == 'conll':
 
-	uniqueNEs = {}
-	words = []
+    uniqueNEs = {}
+    words = []
 
-	temp_f = '{}/temp.{}.txt'.format('/'.join(opts.model.split('/')), str(random.randint(0,1000000000000000000000)))
-	f_temp = open(temp_f, 'w')
-	for line in sys.stdin:
-		line = line.replace('\n','').replace('\r','')
-		f_temp.write('{}\n'.format(line))
-	f_temp.close()
-	### PROCESS INPUT
-
-
-	INPUT = (open(temp_f).read().splitlines())
-	endLine = len(INPUT)
-	ind = 0
-	for line in INPUT:
-	    ind += 1
-	    count = 0
-
-	    # Lowercase sentence
-	    if parameters['lower']:
-	        line = line.lower()
-	    # Replace all digits with zeros
-	    if parameters['zeros']:
-	        line = zero_digits(line)
-
-	    line = line.split()
-	    if len(line) > 0:
-	        words.append(line[0])
-
-	    if len(line) == 0 or ind == endLine:
-
-	        if len(words) > 0:
-	            # Prepare input
-	            sentence = prepare_sentence(words, word_to_id, char_to_id,
-	                                        lower=parameters['lower'])
-	            input = create_input(sentence, parameters, False)
-	            # Decoding
-	            if parameters['crf']:
-	                y_preds = np.array(f_eval(*input))[1:-1]
-	            else:
-	                y_preds = f_eval(*input).argmax(axis=1)
-	            y_preds = [model.id_to_tag[y_pred] for y_pred in y_preds]
-	            # Output tags in the IOB2 format
-	            if parameters['tag_scheme'] == 'iobes':
-	                y_preds = iobes_iob(y_preds)
-	            # Write tags
-	            assert len(y_preds) == len(words)
-	            
-	            if opts.outputFormat == 'json':
-	                sys.stdout.write(json.dumps({ "text": ' '.join(words), "ranges": iob_ranges(y_preds) }))
-
-	            elif opts.outputFormat == 'pelagios':
-
-	                offset = 0
-	                tuples = []
-	                for n in range(len(words)):
-	                    w = words[n]
-	                    y = y_preds[n]
-	                    if y == 'O':
-	                        y = '0'
-	                    else:
-	                        y = y.split('-')
-	                        y = '{}-{}'.format(y[1],y[0])
-	                    # try:
-	                        # sys.stdout.write('{}\t{}\n'.format(y, w))
-	                    # except:
-	                        # sys.stdout.write('{}\tUNICODE-ERROR\n'.format(y))
+    temp_f = '{}/temp.{}.txt'.format('/'.join(opts.model.split('/')), str(random.randint(0,1000000000000000000000)))
+    f_temp = open(temp_f, 'w')
+    for line in sys.stdin:
+        line = line.replace('\n','').replace('\r','')
+        f_temp.write('{}\n'.format(line))
+    f_temp.close()
+    ### PROCESS INPUT
 
 
-	                    if y != '0':
-	                        if '-B' in y:
-	                            tuples.append([offset, w, y.split('-')[0]])
-	                        else:
-	                            tuples[-1][1] += ' {}'.format(w)
+    INPUT = (open(temp_f).read().splitlines())
+    endLine = len(INPUT)
+    ind = 0
+    for line in INPUT:
+        ind += 1
+        count = 0
 
-	                    # sys.stdout.write('{} '.format())
-	                    offset += len(w) + 1
+        # Lowercase sentence
+        if parameters['lower']:
+            line = line.lower()
+        # Replace all digits with zeros
+        if parameters['zeros']:
+            line = zero_digits(line)
 
-	                sys.stdout.write('{}\n'.format(', '.join(str(tup) for tup in tuples)).replace("'",'').replace('[','(').replace(']',')'))
+        line = line.split()
+        if len(line) > 0:
+            words.append(line[0])
 
-	            elif opts.outputFormat == 'crf':
+        if len(line) == 0 or ind == endLine:
 
-	                for n in range(len(words)):
-	                    w = words[n]
-	                    y = y_preds[n]
-	                    if y == 'O':
-	                        y = '0'
-	                    else:
-	                        y = y.split('-')
-	                        y = '{}-{}'.format(y[1],y[0])
-	                    try:
-	                        sys.stdout.write('{}\t{}\n'.format(y, w))
-	                    except:
-	                        sys.stdout.write('{}\tUNICODE-ERROR\n'.format(y))
-	                sys.stdout.write('\n')
+            if len(words) > 0:
+                # Prepare input
+                sentence = prepare_sentence(words, word_to_id, char_to_id,
+                                            lower=parameters['lower'])
+                input = create_input(sentence, parameters, False)
+                # Decoding
+                if parameters['crf']:
+                    try:
+                        y_preds = np.array(f_eval(*input))[1:-1]
+                    except:
+                        y_preds = np.array([0] * len(words))
+                else:
+                    try:
+                        y_preds = f_eval(*input).argmax(axis=1)
+                    except:
+                        y_preds = np.array([0] * len(words))
+                y_preds = [model.id_to_tag[y_pred] for y_pred in y_preds]
+                # Output tags in the IOB2 format
+                if parameters['tag_scheme'] == 'iobes':
+                    y_preds = iobes_iob(y_preds)
+                # Write tags
+                assert len(y_preds) == len(words)
+                
+                if opts.outputFormat == 'json':
+                    sys.stdout.write(json.dumps({ "text": ' '.join(words), "ranges": iob_ranges(y_preds) }))
 
-	            elif opts.outputFormat == 'list':
+                elif opts.outputFormat == 'pelagios':
+
+                    offset = 0
+                    tuples = []
+                    for n in range(len(words)):
+                        w = words[n]
+                        y = y_preds[n]
+                        if y == 'O':
+                            y = '0'
+                        else:
+                            y = y.split('-')
+                            y = '{}-{}'.format(y[1],y[0])
+                        # try:
+                            # sys.stdout.write('{}\t{}\n'.format(y, w))
+                        # except:
+                            # sys.stdout.write('{}\tUNICODE-ERROR\n'.format(y))
 
 
-	                offset = 0
-	                tuples = []
-	                for n in range(len(words)):
-	                    w = words[n]
-	                    y = y_preds[n]
-	                    if y == 'O':
-	                        y = '0'
-	                    else:
-	                        y = y.split('-')
-	                        y = '{}-{}'.format(y[1],y[0])
-	                    # try:
-	                        # sys.stdout.write('{}\t{}\n'.format(y, w))
-	                    # except:
-	                        # sys.stdout.write('{}\tUNICODE-ERROR\n'.format(y))
+                        if y != '0':
+                            if '-B' in y:
+                                tuples.append([offset, w, y.split('-')[0]])
+                            else:
+                                tuples[-1][1] += ' {}'.format(w)
+
+                        # sys.stdout.write('{} '.format())
+                        offset += len(w) + 1
+
+                    sys.stdout.write('{}\n'.format(', '.join(str(tup) for tup in tuples)).replace("'",'').replace('[','(').replace(']',')'))
+
+                elif opts.outputFormat == 'crf':
+
+                    for n in range(len(words)):
+                        w = words[n]
+                        y = y_preds[n]
+                        if y == 'O':
+                            y = '0'
+                        else:
+                            y = y.split('-')
+                            y = '{}-{}'.format(y[1],y[0])
+                        try:
+                            sys.stdout.write('{}\t{}\n'.format(y, w))
+                        except:
+                            sys.stdout.write('{}\tUNICODE-ERROR\n'.format(y))
+                    sys.stdout.write('\n')
 
 
-	                    if y != '0':
-	                        if '-B' in y:
-	                            tuples.append([offset, w, y.split('-')[0]])
-	                        else:
-	                            tuples[-1][1] += ' {}'.format(w)
+                elif opts.outputFormat == 'conll':
 
-	                    # sys.stdout.write('{} '.format())
-	                    offset += len(w) + 1
+                    for n in range(len(words)):
+                        w = words[n]
+                        y = y_preds[n]
+                        try:
+                            # sys.stdout.write('{}\t{}\n'.format(y, w))
+                            sys.stdout.write('{}\t{}\n'.format(w, y))
+                        except:
+                            sys.stdout.write('UNICODE-ERROR\t{}\n'.format(y))
+                    sys.stdout.write('\n')
 
-	                for tup in tuples:
-	                	ne = tup[1]
-	                	label = tup[2]
 
-	                	if label not in uniqueNEs:
-	                		uniqueNEs[label] = {}
-	                	if ne not in uniqueNEs[label]:
-	                		uniqueNEs[label][ne] = 0
-	                	uniqueNEs[label][ne] += 1
+                elif opts.outputFormat == 'list':
 
-	            else:
-	            	print('UNSUPPORTED OUTPUT FORMAT {}'.format(opts.outputFormat))
 
-	            words = []
+                    offset = 0
+                    tuples = []
+                    for n in range(len(words)):
+                        w = words[n]
+                        y = y_preds[n]
+                        if y == 'O':
+                            y = '0'
+                        else:
+                            y = y.split('-')
+                            y = '{}-{}'.format(y[1],y[0])
+                        # try:
+                            # sys.stdout.write('{}\t{}\n'.format(y, w))
+                        # except:
+                            # sys.stdout.write('{}\tUNICODE-ERROR\n'.format(y))
 
-	if opts.outputFormat == 'list':
 
-		for label in uniqueNEs:
-			print(label)
+                        if y != '0':
+                            if '-B' in y:
+                                tuples.append([offset, w, y.split('-')[0]])
+                            else:
+                                tuples[-1][1] += ' {}'.format(w)
 
-			orderedNEs = []
-			for ne in uniqueNEs[label]:
-				orderedNEs.append([uniqueNEs[label][ne], ne])
-			orderedNEs.sort(reverse=True)
-			for tup in orderedNEs:
-				ne = tup[1]
-				count = str(tup[0])
-				print('\t{}\t{}'.format(ne, count))
-			print()
+                        # sys.stdout.write('{} '.format())
+                        offset += len(w) + 1
 
-	os.system('rm '+temp_f)
+                    for tup in tuples:
+                        ne = tup[1]
+                        label = tup[2]
+
+                        if label not in uniqueNEs:
+                            uniqueNEs[label] = {}
+                        if ne not in uniqueNEs[label]:
+                            uniqueNEs[label][ne] = 0
+                        uniqueNEs[label][ne] += 1
+
+                else:
+                    print('UNSUPPORTED OUTPUT FORMAT {}'.format(opts.outputFormat))
+
+                words = []
+
+    if opts.outputFormat == 'list':
+
+        for label in uniqueNEs:
+            print(label)
+
+            orderedNEs = []
+            for ne in uniqueNEs[label]:
+                orderedNEs.append([uniqueNEs[label][ne], ne])
+            orderedNEs.sort(reverse=True)
+            for tup in orderedNEs:
+                ne = tup[1]
+                count = str(tup[0])
+                print('\t{}\t{}'.format(ne, count))
+            print()
+
+    os.system('rm '+temp_f)
 
 
 
@@ -1419,165 +1459,183 @@ elif opts.inputFormat == 'conll':
 
 elif opts.inputFormat == 'crf':
 
-	uniqueNEs = {}
-	words = []
+    uniqueNEs = {}
+    words = []
 
-	temp_f = '{}/temp.{}.txt'.format('/'.join(opts.model.split('/')), str(random.randint(0,1000000000000000000000)))
-	f_temp = open(temp_f, 'w')
-	for line in sys.stdin:
-		line = line.split()
-		if len(line) == 0:
-			f_temp.write('\n')
-		else:
-			f_temp.write('{}\tO\n'.format(line[1]))
-	f_temp.close()
-	### PROCESS INPUT
-
-
-	INPUT = (open(temp_f).read().splitlines())
-	endLine = len(INPUT)
-	ind = 0
-	for line in INPUT:
-	    ind += 1
-	    count = 0
-
-	    # Lowercase sentence
-	    if parameters['lower']:
-	        line = line.lower()
-	    # Replace all digits with zeros
-	    if parameters['zeros']:
-	        line = zero_digits(line)
-
-	    line = line.split()
-	    if len(line) > 0:
-	        words.append(line[0])
-
-	    if len(line) == 0 or ind == endLine:
-
-	        if len(words) > 0:
-	            # Prepare input
-	            sentence = prepare_sentence(words, word_to_id, char_to_id,
-	                                        lower=parameters['lower'])
-	            input = create_input(sentence, parameters, False)
-	            # Decoding
-	            if parameters['crf']:
-	                y_preds = np.array(f_eval(*input))[1:-1]
-	            else:
-	                y_preds = f_eval(*input).argmax(axis=1)
-	            y_preds = [model.id_to_tag[y_pred] for y_pred in y_preds]
-	            # Output tags in the IOB2 format
-	            if parameters['tag_scheme'] == 'iobes':
-	                y_preds = iobes_iob(y_preds)
-	            # Write tags
-	            assert len(y_preds) == len(words)
-	            
-	            if opts.outputFormat == 'json':
-	                sys.stdout.write(json.dumps({ "text": ' '.join(words), "ranges": iob_ranges(y_preds) }))
-
-	            elif opts.outputFormat == 'pelagios':
-
-	                offset = 0
-	                tuples = []
-	                for n in range(len(words)):
-	                    w = words[n]
-	                    y = y_preds[n]
-	                    if y == 'O':
-	                        y = '0'
-	                    else:
-	                        y = y.split('-')
-	                        y = '{}-{}'.format(y[1],y[0])
-	                    # try:
-	                        # sys.stdout.write('{}\t{}\n'.format(y, w))
-	                    # except:
-	                        # sys.stdout.write('{}\tUNICODE-ERROR\n'.format(y))
+    temp_f = '{}/temp.{}.txt'.format('/'.join(opts.model.split('/')), str(random.randint(0,1000000000000000000000)))
+    f_temp = open(temp_f, 'w')
+    for line in sys.stdin:
+        line = line.split()
+        if len(line) == 0:
+            f_temp.write('\n')
+        else:
+            f_temp.write('{}\tO\n'.format(line[1]))
+    f_temp.close()
+    ### PROCESS INPUT
 
 
-	                    if y != '0':
-	                        if '-B' in y:
-	                            tuples.append([offset, w, y.split('-')[0]])
-	                        else:
-	                            tuples[-1][1] += ' {}'.format(w)
+    INPUT = (open(temp_f).read().splitlines())
+    endLine = len(INPUT)
+    ind = 0
+    for line in INPUT:
+        ind += 1
+        count = 0
 
-	                    # sys.stdout.write('{} '.format())
-	                    offset += len(w) + 1
+        # Lowercase sentence
+        if parameters['lower']:
+            line = line.lower()
+        # Replace all digits with zeros
+        if parameters['zeros']:
+            line = zero_digits(line)
 
-	                sys.stdout.write('{}\n'.format(', '.join(str(tup) for tup in tuples)).replace("'",'').replace('[','(').replace(']',')'))
+        line = line.split()
+        if len(line) > 0:
+            words.append(line[0])
 
-	            elif opts.outputFormat == 'crf':
+        if len(line) == 0 or ind == endLine:
 
-	                for n in range(len(words)):
-	                    w = words[n]
-	                    y = y_preds[n]
-	                    if y == 'O':
-	                        y = '0'
-	                    else:
-	                        y = y.split('-')
-	                        y = '{}-{}'.format(y[1],y[0])
-	                    try:
-	                        sys.stdout.write('{}\t{}\n'.format(y, w))
-	                    except:
-	                        sys.stdout.write('{}\tUNICODE-ERROR\n'.format(y))
-	                sys.stdout.write('\n')
+            if len(words) > 0:
+                # Prepare input
+                sentence = prepare_sentence(words, word_to_id, char_to_id,
+                                            lower=parameters['lower'])
+                input = create_input(sentence, parameters, False)
+                # Decoding
+                if parameters['crf']:
+                    try:
+                        y_preds = np.array(f_eval(*input))[1:-1]
+                    except:
+                        y_preds = np.array([0] * len(words))
+                else:
+                    try:
+                        y_preds = f_eval(*input).argmax(axis=1)
+                    except:
+                        y_preds = np.array([0] * len(words))
+                y_preds = [model.id_to_tag[y_pred] for y_pred in y_preds]
+                # Output tags in the IOB2 format
+                if parameters['tag_scheme'] == 'iobes':
+                    y_preds = iobes_iob(y_preds)
+                # Write tags
+                assert len(y_preds) == len(words)
+                
+                if opts.outputFormat == 'json':
+                    sys.stdout.write(json.dumps({ "text": ' '.join(words), "ranges": iob_ranges(y_preds) }))
 
-	            elif opts.outputFormat == 'list':
+                elif opts.outputFormat == 'pelagios':
+
+                    offset = 0
+                    tuples = []
+                    for n in range(len(words)):
+                        w = words[n]
+                        y = y_preds[n]
+                        if y == 'O':
+                            y = '0'
+                        else:
+                            y = y.split('-')
+                            y = '{}-{}'.format(y[1],y[0])
+                        # try:
+                            # sys.stdout.write('{}\t{}\n'.format(y, w))
+                        # except:
+                            # sys.stdout.write('{}\tUNICODE-ERROR\n'.format(y))
 
 
-	                offset = 0
-	                tuples = []
-	                for n in range(len(words)):
-	                    w = words[n]
-	                    y = y_preds[n]
-	                    if y == 'O':
-	                        y = '0'
-	                    else:
-	                        y = y.split('-')
-	                        y = '{}-{}'.format(y[1],y[0])
-	                    # try:
-	                        # sys.stdout.write('{}\t{}\n'.format(y, w))
-	                    # except:
-	                        # sys.stdout.write('{}\tUNICODE-ERROR\n'.format(y))
+                        if y != '0':
+                            if '-B' in y:
+                                tuples.append([offset, w, y.split('-')[0]])
+                            else:
+                                tuples[-1][1] += ' {}'.format(w)
+
+                        # sys.stdout.write('{} '.format())
+                        offset += len(w) + 1
+
+                    sys.stdout.write('{}\n'.format(', '.join(str(tup) for tup in tuples)).replace("'",'').replace('[','(').replace(']',')'))
+
+                elif opts.outputFormat == 'crf':
+
+                    for n in range(len(words)):
+                        w = words[n]
+                        y = y_preds[n]
+                        if y == 'O':
+                            y = '0'
+                        else:
+                            y = y.split('-')
+                            y = '{}-{}'.format(y[1],y[0])
+                        try:
+                            sys.stdout.write('{}\t{}\n'.format(y, w))
+                        except:
+                            sys.stdout.write('{}\tUNICODE-ERROR\n'.format(y))
+                    sys.stdout.write('\n')
+
+                elif opts.outputFormat == 'conll':
+
+                    for n in range(len(words)):
+                        w = words[n]
+                        y = y_preds[n]
+                        try:
+                            # sys.stdout.write('{}\t{}\n'.format(y, w))
+                            sys.stdout.write('{}\t{}\n'.format(w, y))
+                        except:
+                            sys.stdout.write('UNICODE-ERROR\t{}\n'.format(y))
+                    sys.stdout.write('\n')
+
+                elif opts.outputFormat == 'list':
 
 
-	                    if y != '0':
-	                        if '-B' in y:
-	                            tuples.append([offset, w, y.split('-')[0]])
-	                        else:
-	                            tuples[-1][1] += ' {}'.format(w)
+                    offset = 0
+                    tuples = []
+                    for n in range(len(words)):
+                        w = words[n]
+                        y = y_preds[n]
+                        if y == 'O':
+                            y = '0'
+                        else:
+                            y = y.split('-')
+                            y = '{}-{}'.format(y[1],y[0])
+                        # try:
+                            # sys.stdout.write('{}\t{}\n'.format(y, w))
+                        # except:
+                            # sys.stdout.write('{}\tUNICODE-ERROR\n'.format(y))
 
-	                    # sys.stdout.write('{} '.format())
-	                    offset += len(w) + 1
 
-	                for tup in tuples:
-	                	ne = tup[1]
-	                	label = tup[2]
+                        if y != '0':
+                            if '-B' in y:
+                                tuples.append([offset, w, y.split('-')[0]])
+                            else:
+                                tuples[-1][1] += ' {}'.format(w)
 
-	                	if label not in uniqueNEs:
-	                		uniqueNEs[label] = {}
-	                	if ne not in uniqueNEs[label]:
-	                		uniqueNEs[label][ne] = 0
-	                	uniqueNEs[label][ne] += 1
+                        # sys.stdout.write('{} '.format())
+                        offset += len(w) + 1
 
-	            else:
-	            	print('UNSUPPORTED OUTPUT FORMAT {}'.format(opts.outputFormat))
+                    for tup in tuples:
+                        ne = tup[1]
+                        label = tup[2]
 
-	            words = []
+                        if label not in uniqueNEs:
+                            uniqueNEs[label] = {}
+                        if ne not in uniqueNEs[label]:
+                            uniqueNEs[label][ne] = 0
+                        uniqueNEs[label][ne] += 1
 
-	if opts.outputFormat == 'list':
+                else:
+                    print('UNSUPPORTED OUTPUT FORMAT {}'.format(opts.outputFormat))
 
-		for label in uniqueNEs:
-			print(label)
+                words = []
 
-			orderedNEs = []
-			for ne in uniqueNEs[label]:
-				orderedNEs.append([uniqueNEs[label][ne], ne])
-			orderedNEs.sort(reverse=True)
-			for tup in orderedNEs:
-				ne = tup[1]
-				count = str(tup[0])
-				print('\t{}\t{}'.format(ne, count))
-			print()
+    if opts.outputFormat == 'list':
 
-	os.system('rm '+temp_f)
+        for label in uniqueNEs:
+            print(label)
+
+            orderedNEs = []
+            for ne in uniqueNEs[label]:
+                orderedNEs.append([uniqueNEs[label][ne], ne])
+            orderedNEs.sort(reverse=True)
+            for tup in orderedNEs:
+                ne = tup[1]
+                count = str(tup[0])
+                print('\t{}\t{}'.format(ne, count))
+            print()
+
+    os.system('rm '+temp_f)
 
 else:
-	print('UNSUPPORTED INPUT FORMAT {}'.format(opts.inputFormat))
+    print('UNSUPPORTED INPUT FORMAT {}'.format(opts.inputFormat))
