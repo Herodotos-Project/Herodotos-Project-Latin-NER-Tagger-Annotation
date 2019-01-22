@@ -42,4 +42,4 @@ cat sample.in.tok | python tagger.py --outputFormat list > sample.out.list
 ```
 And of course, any combination of input and output formats is supported.
 
-Please contact erdmann.6@osu.edu or any of the co-authors with questions regarding this data.
+Please contact erdmann.6@osu.edu or any of the co-authors with questions regarding this data. If you find this work useful in any way, please cite [Erdmann et al. (2016)](http://www.aclweb.org/anthology/W16-4012).
