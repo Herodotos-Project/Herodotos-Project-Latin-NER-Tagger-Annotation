@@ -1,6 +1,8 @@
 # Herodotos Project NER Annotation and Tagger
 
-Latin texts annotated for named entities as part of the Herodotos Project (Ohio State University / Ghent University) as well as the BiLSTM-CRF (Lample et al., 2016) NER tagger trained on said annotation (see the [Humanities Entity Recognizer](https://github.com/alexerdmann/HER) for more details on the NER component).
+Texts annotated for named entities as part of the Herodotos Project (Ohio State University / Ghent University) as well as the BiLSTM-CRF (Lample et al., 2016) NER tagger trained on said annotation (see the [Humanities Entity Recognizer](https://github.com/alexerdmann/HER) for more details on the NER component).
+
+**All texts are in Latin**, from the [Latin Library Collection](https://www.thelatinlibrary.com) (collected by [CLTK](https://github.com/cltk/latin_text_latin_library)) or [Perseus Latin Collection](http://www.perseus.tufts.edu/hopper/collection?collection=Perseus:collection:Greco-Roman). **Greek will be added soon!**.
 
 The data files in the Annotation directory were annotated for named entities by a team of Latin experts at the Ohio State University. Greek annotation data is forthcoming as well. Texts presently included are excerpts from Caesar's Wars, both Gallic (GW) and Civil (CW), the Plinies' writings, both Elder and Younger, and Ovid's Ars Amatoria.
 
