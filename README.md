@@ -1,6 +1,6 @@
 # Herodotos Project NER Annotation and Tagger
 
-This repository includes texts annotated for named entities as part of the [Herodotos Project](https://u.osu.edu/herodotos/) (Ohio State University / Ghent University) as well as a BiLSTM-CRF ([Lample et al., 2016](https://arxiv.org/abs/1603.01360)) NER tagger pre-trained on said annotation. Please check out the [Humanities Entity Recognizer](https://github.com/alexerdmann/HER) for more details on how it was trained).
+This repository includes texts annotated for named entities as part of the [Herodotos Project](https://u.osu.edu/herodotos/) (Ohio State University / Ghent University) as well as a BiLSTM-CRF ([Lample et al., 2016](https://arxiv.org/abs/1603.01360)) NER tagger pre-trained on said annotation. Please check out the [Humanities Entity Recognizer](https://github.com/alexerdmann/HER) for more details on how it was trained.
 
 ## Annotation
 
