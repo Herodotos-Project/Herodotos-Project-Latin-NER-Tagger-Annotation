@@ -2,7 +2,7 @@
 
 This repository includes texts annotated for named entities as part of the [Herodotos Project](https://u.osu.edu/herodotos/) (Ohio State University / Ghent University) as well as a BiLSTM-CRF ([Lample et al., 2016](https://arxiv.org/abs/1603.01360)) NER tagger pre-trained on said annotation (see the [Humanities Entity Recognizer](https://github.com/alexerdmann/HER) for more details on how it was trained).
 
-## Data
+## Annotation
 
 **All texts are in Latin** taken from the [Latin Library Collection](https://www.thelatinlibrary.com) (collected by [CLTK](https://github.com/cltk/latin_text_latin_library)) or the [Perseus Latin Collection](http://www.perseus.tufts.edu/hopper/collection?collection=Perseus:collection:Greco-Roman). **Greek will be added soon**.
 
