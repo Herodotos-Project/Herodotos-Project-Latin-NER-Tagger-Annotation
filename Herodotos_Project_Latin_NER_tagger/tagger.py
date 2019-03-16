@@ -1087,6 +1087,7 @@ model.reload()
 
 #############################
 sys.stderr.write('Tagging...')
+uniqueNEs = {}
 
 if opts.inputFormat == 'tok':
 
@@ -1213,7 +1214,6 @@ if opts.inputFormat == 'tok':
 
                 elif opts.outputFormat == 'list':
 
-
                     offset = 0
                     tuples = []
                     for n in range(len(words)):
@@ -1274,7 +1274,6 @@ if opts.inputFormat == 'tok':
 
 elif opts.inputFormat == 'conll':
 
-    uniqueNEs = {}
     words = []
 
     temp_f = '{}/temp.{}.txt'.format('/'.join(opts.model.split('/')), str(random.randint(0,1000000000000000000000)))
@@ -1393,7 +1392,6 @@ elif opts.inputFormat == 'conll':
 
                 elif opts.outputFormat == 'list':
 
-
                     offset = 0
                     tuples = []
                     for n in range(len(words)):
@@ -1459,7 +1457,6 @@ elif opts.inputFormat == 'conll':
 
 elif opts.inputFormat == 'crf':
 
-    uniqueNEs = {}
     words = []
 
     temp_f = '{}/temp.{}.txt'.format('/'.join(opts.model.split('/')), str(random.randint(0,1000000000000000000000)))
@@ -1578,7 +1575,6 @@ elif opts.inputFormat == 'crf':
                     sys.stdout.write('\n')
 
                 elif opts.outputFormat == 'list':
-
 
                     offset = 0
                     tuples = []
