@@ -20,8 +20,8 @@ The Herodotos Project Latin NER Tagger is trained on the entire set of Latin dat
 
 To run the tagger, make sure the below packages and any dependencies have been installed.
 
-[Python 3](https://www.python.org/downloads/)
-[Theano](https://github.com/Theano/Theano)
+* [Python 3](https://www.python.org/downloads/)
+* [Theano](https://github.com/Theano/Theano)
 
 ### Usage
 
