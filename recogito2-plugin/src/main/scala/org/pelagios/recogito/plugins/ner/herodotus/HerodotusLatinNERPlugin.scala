@@ -9,11 +9,11 @@ import sys.process._
 
 class HerodotusLatinNERPlugin extends NERPlugin {
 
-  override val getName = "Flair NER"
+  override val getName = "Herodotus Latin NER"
 
-  override val getDescription = "An experimental wrapper plugin using Flair by Zalando Research"
+  override val getDescription = "An experimental Latin NER plugin by Alex Erdmann"
 
-  override val getOrganization = "Zalando Research"
+  override val getOrganization = "Alex Erdmann"
 
   override val getVersion = "0.1"
 
@@ -30,12 +30,12 @@ class HerodotusLatinNERPlugin extends NERPlugin {
     val script = HerodotusLatinNERPlugin.findPath("tagger.py").get
 
     // Call out via commandline and collect the results
-    val command = s"cat ${tmp.getAbsolutePath}" // | python ${script}"
+    val command = s"cat ${tmp.getAbsolutePath} | python ${script}"
     println(command)
 
     val result = command !!
-    println(result)
 
+    println(result)
 
     // Delete the temp file
     // tmp.delete()
