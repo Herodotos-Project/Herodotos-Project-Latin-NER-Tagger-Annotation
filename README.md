@@ -29,7 +29,7 @@ The tagger can be called with the following commands:
 
 ```
 cd Herodotos_Project_Latin_NER_tagger
-cat sample.in.tok | python tagger.py > sample.out.tags
+python tagger.py --input sample.in.tok > sample.out.tags
 ```
 
 The input should already be tokenized with clitics separated and one sentence per line, as in *sample.in.tok*. Near optimal performance can be achieved by simply using punctuation-and-white-space or even just white-space tokenization due to the relative infrequency of Latin cliticization and the tagger's robust handling of character-level features. The output will return all identified named entities for each line as triples. Each triple contains the following information: (1) character offset within the corresponding line where the named entity starts (2) the full span of the named entity (3) the label of the named entity.
@@ -37,31 +37,31 @@ The input should already be tokenized with clitics separated and one sentence pe
 Alternative supported input formats can be specified with the ```--inputFormat``` option. They include the conll and [crfsuite](http://www.chokkan.org/software/crfsuite/) formats. Conll is one token per line, followed by a tab, then its label (though since we're predicting the label, it doesn't matter what you actually put as the label). Sentence breaks are indicated by a blank line. See *sample.in.conll* for an example.
 
 ```
-cat sample.in.conll | python tagger.py --inputFormat conll > sample.out.tags
+python tagger.py --input sample.in.conll --inputFormat conll > sample.out.tags
 ```
 
 Crfsuite formatting is the same as conll but the token-label order is reversed. See *sample.in.crf* for an example.
 
 ```
-cat sample.in.crf | python tagger.py --inputFormat crf > sample.out.tags
+python tagger.py --input sample.in.crf --inputFormat crf > sample.out.tags
 ```
 
 You can also request different output formats via the ```--outputFormat``` option. The following example will output to crfsuite format:
 
 ```
-cat sample.in.tok | python tagger.py --outputFormat crf > sample.out.crf
+python tagger.py --input sample.in.tok --outputFormat crf > sample.out.crf
 ```
 
 And this will output to conll format:
 
 ```
-cat sample.in.tok | python tagger.py --outputFormat conll > sample.out.conll
+python tagger.py sample.in.tok --outputFormat conll > sample.out.conll
 ```
 
 Alternatively, you can print out a list of all unique entities identified by label with the list option:
 
 ```
-cat sample.in.tok | python tagger.py --outputFormat list > sample.out.list
+python tagger.py sample.in.tok --outputFormat list > sample.out.list
 ```
 
 And of course, any combination of input and output formats is supported.
