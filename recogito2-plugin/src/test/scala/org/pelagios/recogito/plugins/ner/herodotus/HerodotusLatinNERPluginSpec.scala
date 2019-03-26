@@ -16,8 +16,16 @@ class HerodotusLatinNERPluginSpec extends Specification {
       val plugin = new HerodotusLatinNERPlugin()
       val entities = plugin.parse(SAMPLE_TEXT).asScala
 
-      // TODO
-      entities.size must be_>(-1)
+      // Expected: 
+      //   [C. Iuli Caesaris|LOCATION|0],
+      //   [Fabio|LOCATION|74], 
+      //   [C. Caesaris|LOCATION|80], 
+      //   [Lentulus|LOCATION|204],
+      //   [Calidi|LOCATION|224], 
+      //   [Marcellus|LOCATION|266])
+
+      entities.size must be_==(6)
+      entities.map(_.chars).toSet must be_==(Set("C. Iuli Caesaris", "Fabio", "C. Caesaris", "Lentulus", "Calidi", "Marcellus"))
     }
 
   }
