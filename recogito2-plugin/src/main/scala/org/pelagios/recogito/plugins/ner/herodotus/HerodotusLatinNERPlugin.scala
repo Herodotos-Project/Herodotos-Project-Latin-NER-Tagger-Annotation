@@ -19,6 +19,11 @@ class HerodotusLatinNERPlugin extends NERPlugin {
 
   override val getSupportedLanguages = Seq.empty[String].asJava
 
+  private def getType(t: String) = t match {
+    case "PRS" => EntityType.PERSON
+    case _ => EntityType.LOCATION // Room for impro
+  }
+
   override def parse(text: String) = {
     // Write the text to a temporary file we can hand to Flair
     val tmp = File.createTempFile("herodotus_", ".txt")
@@ -30,36 +35,26 @@ class HerodotusLatinNERPlugin extends NERPlugin {
     val script = HerodotusLatinNERPlugin.findPath("tagger.py").get
 
     // Call out via commandline and collect the results
-    val command = s"cat ${tmp.getAbsolutePath} | python ${script}"
-    println(command)
+    val command = s"python ${script} --input ${tmp.getAbsolutePath}"
+    val out = command !!
 
-    val result = command !!
-
-    println(result)
+    val tokens = out
+      .split("\\(|\\),|\\)")
+      .toSeq
+      .map(_.trim)
+      .filter(!_.isEmpty) // Strings like 74, Fabio, PRS
 
     // Delete the temp file
-    // tmp.delete()
+    tmp.delete()
 
-    /* The script returns JSON - parse the result...
-    val json = Json.parse(result)
+    val entities = tokens.map { _.split(",").toSeq match {
+      case Seq(offset, token, typ) =>
+        Some(new Entity(token.trim, getType(typ), offset.toInt))
 
-    // ...and convert entities to Recogito API classes
-    (json \ "entities").as[Seq[JsObject]].flatMap { obj =>
-      val text  = (obj \ "text").as[String]
-      val start = (obj \ "start_pos").as[Int]
+      case s => None
+    }}.flatten
 
-      // Current API only supports Place and Person - discard the rest
-      val typ   = (obj \ "type").as[String] match {
-        case "PER" => Some(EntityType.PERSON)
-        case "LOC" => Some(EntityType.LOCATION)
-        case _ => None
-      }
-
-      typ.map(t => new Entity(text, t, start))
-    }.asJava
-    */
-
-    Seq.empty[Entity].asJava
+    entities.asJava
   }
 
 }
