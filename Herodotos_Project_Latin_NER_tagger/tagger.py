@@ -1068,7 +1068,7 @@ opts.model = os.path.join(workingDir, opts.model_loc)
 
 # Check parameters validity
 assert os.path.isdir(opts.model)
-# assert os.path.isfile(opts.input) or None
+assert os.path.isfile(opts.input) or None
 
 model = Model(opts.model_loc, model_path=opts.model)
 parameters = model.parameters
@@ -1088,6 +1088,7 @@ model.reload()
 #############################
 sys.stderr.write('Tagging...')
 uniqueNEs = {}
+offset = 0
 
 if opts.inputFormat == 'tok':
 
@@ -1100,7 +1101,7 @@ if opts.inputFormat == 'tok':
     # NEED TO CONVERT THAT TO ONE TOKEN PER LINE WITH BLANK LINE FOR SPACE
     temp_f = '{}/temp.{}.txt'.format('/'.join(opts.model.split('/')), str(random.randint(0,1000000000000000000000)))
     f_temp = open(temp_f, 'w')
-    for line in sys.stdin:
+    for line in open(opts.input):
         for word in line.split():
             f_temp.write('{} 0\n'.format(word))
         f_temp.write('\n')
@@ -1155,7 +1156,6 @@ if opts.inputFormat == 'tok':
 
                 elif opts.outputFormat == 'pelagios':
 
-                    offset = 0
                     tuples = []
                     for n in range(len(words)):
                         w = words[n]
@@ -1214,7 +1214,6 @@ if opts.inputFormat == 'tok':
 
                 elif opts.outputFormat == 'list':
 
-                    offset = 0
                     tuples = []
                     for n in range(len(words)):
                         w = words[n]
@@ -1278,7 +1277,7 @@ elif opts.inputFormat == 'conll':
 
     temp_f = '{}/temp.{}.txt'.format('/'.join(opts.model.split('/')), str(random.randint(0,1000000000000000000000)))
     f_temp = open(temp_f, 'w')
-    for line in sys.stdin:
+    for line in open(opts.input):
         line = line.replace('\n','').replace('\r','')
         f_temp.write('{}\n'.format(line))
     f_temp.close()
@@ -1333,7 +1332,6 @@ elif opts.inputFormat == 'conll':
 
                 elif opts.outputFormat == 'pelagios':
 
-                    offset = 0
                     tuples = []
                     for n in range(len(words)):
                         w = words[n]
@@ -1392,7 +1390,6 @@ elif opts.inputFormat == 'conll':
 
                 elif opts.outputFormat == 'list':
 
-                    offset = 0
                     tuples = []
                     for n in range(len(words)):
                         w = words[n]
@@ -1461,7 +1458,7 @@ elif opts.inputFormat == 'crf':
 
     temp_f = '{}/temp.{}.txt'.format('/'.join(opts.model.split('/')), str(random.randint(0,1000000000000000000000)))
     f_temp = open(temp_f, 'w')
-    for line in sys.stdin:
+    for line in open(opts.input):
         line = line.split()
         if len(line) == 0:
             f_temp.write('\n')
@@ -1519,7 +1516,6 @@ elif opts.inputFormat == 'crf':
 
                 elif opts.outputFormat == 'pelagios':
 
-                    offset = 0
                     tuples = []
                     for n in range(len(words)):
                         w = words[n]
@@ -1576,7 +1572,6 @@ elif opts.inputFormat == 'crf':
 
                 elif opts.outputFormat == 'list':
 
-                    offset = 0
                     tuples = []
                     for n in range(len(words)):
                         w = words[n]
