@@ -1,4 +1,4 @@
-package org.pelagios.recogito.plugins.ner.flair
+package org.pelagios.recogito.plugins.ner.herodotus
 
 import java.io.{File, PrintWriter}
 import java.util.UUID
@@ -49,7 +49,7 @@ class HerodotusLatinNERPlugin extends NERPlugin {
 
     val entities = tokens.map { _.split(",").toSeq match {
       case Seq(offset, token, typ) =>
-        Some(new Entity(token.trim, getType(typ), offset.toInt))
+        Some(new Entity(token.trim, getType(typ.trim), offset.toInt))
 
       case s => None
     }}.flatten
