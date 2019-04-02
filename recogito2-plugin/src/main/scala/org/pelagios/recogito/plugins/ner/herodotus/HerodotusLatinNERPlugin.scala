@@ -2,6 +2,7 @@ package org.pelagios.recogito.plugins.ner.herodotus
 
 import java.io.{File, PrintWriter}
 import java.util.UUID
+import org.pelagios.recogito.sdk.PluginEnvironment
 import org.pelagios.recogito.sdk.ner._
 import scala.collection.JavaConverters._
 import scala.language.postfixOps
@@ -24,18 +25,23 @@ class HerodotusLatinNERPlugin extends NERPlugin {
     case _ => EntityType.LOCATION // Room for impro
   }
 
-  override def parse(text: String) = {
+  override def parse(text: String, env: PluginEnvironment) = {
     // Write the text to a temporary file we can hand to Flair
     val tmp = File.createTempFile("herodotus_", ".txt")
     val writer = new PrintWriter(tmp)
     writer.write(text)
     writer.close
 
+    // Some systems might use a differnt python executable (e.g. 'python3')
+    val executable = Option(env.getPluginConfig().get("plugins.python.executable")).getOrElse("python");
+
     // Locate the script somewhere within the /plugins folder
-    val script = HerodotusLatinNERPlugin.findPath("tagger.py").get
+    val script = env.findFile("tagger.py")
 
     // Call out via commandline and collect the results
-    val command = s"python ${script} --input ${tmp.getAbsolutePath}"
+    val command = s"${executable} ${script} --input ${tmp.getAbsolutePath}"
+    println(command)
+
     val out = command !!
 
     val tokens = out
@@ -55,25 +61,6 @@ class HerodotusLatinNERPlugin extends NERPlugin {
     }}.flatten
 
     entities.asJava
-  }
-
-}
-
-// TODO move this into the SDK as a utility function
-object HerodotusLatinNERPlugin {
-
-  private def findInFolder(filename: String, folder: File): Option[File] = {
-    folder.listFiles.toSeq.filter(_.getName == filename).headOption match {
-      case Some(file) => Some(file)
-
-      case None => 
-        val folders = folder.listFiles.filter(_.isDirectory)
-        folders.flatMap(f => findInFolder(filename, f)).headOption
-    }
-  }
-
-  def findPath(filename: String, rootPath: String = ".."): Option[String] = {
-    findInFolder(filename, new File(rootPath)).map(_.getAbsolutePath)
   }
 
 }

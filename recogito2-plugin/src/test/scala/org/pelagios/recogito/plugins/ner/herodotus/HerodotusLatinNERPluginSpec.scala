@@ -1,6 +1,7 @@
 package org.pelagios.recogito.plugins.ner.herodotus
 
 import java.io.File
+import org.pelagios.recogito.sdk.PluginEnvironment
 import org.pelagios.recogito.sdk.ner._
 import org.specs2.mutable._
 import scala.collection.JavaConverters._
@@ -13,8 +14,9 @@ class HerodotusLatinNERPluginSpec extends Specification {
   "The wrapper plugin" should {
 
     "should parse the sample text" in {
+      val env = new PluginEnvironment("..")
       val plugin = new HerodotusLatinNERPlugin()
-      val entities = plugin.parse(SAMPLE_TEXT).asScala
+      val entities = plugin.parse(SAMPLE_TEXT, env).asScala
 
       // Expected: 
       //   [C. Iuli Caesaris|LOCATION|0],
