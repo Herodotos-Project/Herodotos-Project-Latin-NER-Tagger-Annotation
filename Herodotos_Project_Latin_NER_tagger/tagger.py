@@ -23,6 +23,7 @@ import pickle
 # eval_path = "./evaluation"
 # eval_temp = os.path.join(eval_path, "temp")
 # eval_script = os.path.join(eval_path, "conlleval")
+import pdb
 
 
 floatX = theano.config.floatX
@@ -1062,8 +1063,10 @@ assert opts.delimiter
 sys.stderr.write("Loading model...")
 ### HARD CODED MODEL LOCATION FOR THE PACKAGED VERSION
 opts.model_loc = 'latin_ner'
-workingDir = os.path.dirname(os.path.realpath(sys.argv[0]))
+#workingDir = os.path.dirname(os.path.realpath(sys.argv[0])) -- doesn't allow imports, fixed version below.
+workingDir = os.path.dirname(os.path.realpath(sys.argv[0])) if len(sys.argv[0]) > 0 else os.getcwd()
 opts.model = os.path.join(workingDir, opts.model_loc)
+
 ###
 
 # Check parameters validity
