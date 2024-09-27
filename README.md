@@ -39,6 +39,7 @@ Alternative supported input formats can be specified with the ```--inputFormat``
 ```
 python tagger.py --input sample.in.conll --inputFormat conll > sample.out.tags
 ```
+If you are on a Mac OS system and get errors when running this command, add `theano.config.gcc.cxxflags = "-Wno-c++11-narrowing` to the tagger.py file, to supress compiler warnings.
 
 Crfsuite formatting is the same as conll but the token-label order is reversed. See *sample.in.crf* for an example.
 
